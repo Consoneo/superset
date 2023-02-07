@@ -56,15 +56,15 @@ import { DashboardStatus } from './types';
 const PAGE_SIZE = 25;
 const PASSWORDS_NEEDED_MESSAGE = t(
   'The passwords for the databases below are needed in order to ' +
-    'import them together with the dashboards. Please note that the ' +
-    '"Secure Extra" and "Certificate" sections of ' +
-    'the database configuration are not present in export files, and ' +
-    'should be added manually after the import if they are needed.',
+  'import them together with the dashboards. Please note that the ' +
+  '"Secure Extra" and "Certificate" sections of ' +
+  'the database configuration are not present in export files, and ' +
+  'should be added manually after the import if they are needed.',
 );
 const CONFIRM_OVERWRITE_MESSAGE = t(
   'You are importing one or more dashboards that already exist. ' +
-    'Overwriting might cause you to lose some of your work. Are you ' +
-    'sure you want to overwrite?',
+  'Overwriting might cause you to lose some of your work. Are you ' +
+  'sure you want to overwrite?',
 );
 
 interface DashboardListProps {
@@ -465,89 +465,6 @@ function DashboardList(props: DashboardListProps) {
     [],
   );
 
-  const filters: Filters = useMemo(
-    () => [
-      {
-        Header: t('Search'),
-        key: 'search',
-        id: 'dashboard_title',
-        input: 'search',
-        operator: FilterOperator.titleOrSlug,
-      },
-      {
-        Header: t('Owner'),
-        key: 'owner',
-        id: 'owners',
-        input: 'select',
-        operator: FilterOperator.relationManyMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'dashboard',
-          'owners',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching dashboard owner values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Created by'),
-        key: 'created_by',
-        id: 'created_by',
-        input: 'select',
-        operator: FilterOperator.relationOneMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'dashboard',
-          'created_by',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching dashboard created by values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Status'),
-        key: 'published',
-        id: 'published',
-        input: 'select',
-        operator: FilterOperator.equals,
-        unfilteredLabel: t('Any'),
-        selects: [
-          { label: t('Published'), value: true },
-          { label: t('Draft'), value: false },
-        ],
-      },
-      ...(userId ? [favoritesFilter] : []),
-      {
-        Header: t('Certified'),
-        key: 'certified',
-        id: 'id',
-        urlDisplay: 'certified',
-        input: 'select',
-        operator: FilterOperator.dashboardIsCertified,
-        unfilteredLabel: t('Any'),
-        selects: [
-          { label: t('Yes'), value: true },
-          { label: t('No'), value: false },
-        ],
-      },
-    ],
-    [addDangerToast, favoritesFilter, props.user],
-  );
-
   const sortTypes = [
     {
       desc: false,
@@ -691,7 +608,6 @@ function DashboardList(props: DashboardListProps) {
                 data={dashboards}
                 disableBulkSelect={toggleBulkSelect}
                 fetchData={fetchData}
-                filters={filters}
                 initialSort={initialSort}
                 loading={loading}
                 pageSize={PAGE_SIZE}

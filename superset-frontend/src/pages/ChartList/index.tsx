@@ -88,15 +88,15 @@ const FlexRowContainer = styled.div`
 const PAGE_SIZE = 25;
 const PASSWORDS_NEEDED_MESSAGE = t(
   'The passwords for the databases below are needed in order to ' +
-    'import them together with the charts. Please note that the ' +
-    '"Secure Extra" and "Certificate" sections of ' +
-    'the database configuration are not present in export files, and ' +
-    'should be added manually after the import if they are needed.',
+  'import them together with the charts. Please note that the ' +
+  '"Secure Extra" and "Certificate" sections of ' +
+  'the database configuration are not present in export files, and ' +
+  'should be added manually after the import if they are needed.',
 );
 const CONFIRM_OVERWRITE_MESSAGE = t(
   'You are importing one or more charts that already exist. ' +
-    'Overwriting might cause you to lose some of your work. Are you ' +
-    'sure you want to overwrite?',
+  'Overwriting might cause you to lose some of your work. Are you ' +
+  'sure you want to overwrite?',
 );
 
 setupPlugins();
@@ -264,14 +264,14 @@ function ChartList(props: ChartListProps) {
     // add filters if filterValue
     const filters = filterValue
       ? {
-          filters: [
-            {
-              col: 'dashboards',
-              opr: FilterOperator.relationManyMany,
-              value: filterValue,
-            },
-          ],
-        }
+        filters: [
+          {
+            col: 'dashboards',
+            opr: FilterOperator.relationManyMany,
+            value: filterValue,
+          },
+        ],
+      }
       : {};
     const queryParams = rison.encode({
       columns: ['dashboard_title', 'id'],
@@ -572,123 +572,6 @@ function ChartList(props: ChartListProps) {
     [],
   );
 
-  const filters: Filters = useMemo(
-    () => [
-      {
-        Header: t('Owner'),
-        key: 'owner',
-        id: 'owners',
-        input: 'select',
-        operator: FilterOperator.relationManyMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'chart',
-          'owners',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching chart owners values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Created by'),
-        key: 'created_by',
-        id: 'created_by',
-        input: 'select',
-        operator: FilterOperator.relationOneMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'chart',
-          'created_by',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching chart created by values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Chart type'),
-        key: 'viz_type',
-        id: 'viz_type',
-        input: 'select',
-        operator: FilterOperator.equals,
-        unfilteredLabel: t('All'),
-        selects: registry
-          .keys()
-          .filter(k => nativeFilterGate(registry.get(k)?.behaviors || []))
-          .map(k => ({ label: registry.get(k)?.name || k, value: k }))
-          .sort((a, b) => {
-            if (!a.label || !b.label) {
-              return 0;
-            }
-
-            if (a.label > b.label) {
-              return 1;
-            }
-            if (a.label < b.label) {
-              return -1;
-            }
-
-            return 0;
-          }),
-      },
-      {
-        Header: t('Dataset'),
-        key: 'dataset',
-        id: 'datasource_id',
-        input: 'select',
-        operator: FilterOperator.equals,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchDatasets,
-        paginate: true,
-      },
-      {
-        Header: t('Dashboards'),
-        key: 'dashboards',
-        id: 'dashboards',
-        input: 'select',
-        operator: FilterOperator.relationManyMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: fetchDashboards,
-        paginate: true,
-      },
-      ...(userId ? [favoritesFilter] : []),
-      {
-        Header: t('Certified'),
-        key: 'certified',
-        id: 'id',
-        urlDisplay: 'certified',
-        input: 'select',
-        operator: FilterOperator.chartIsCertified,
-        unfilteredLabel: t('Any'),
-        selects: [
-          { label: t('Yes'), value: true },
-          { label: t('No'), value: false },
-        ],
-      },
-      {
-        Header: t('Search'),
-        key: 'search',
-        id: 'slice_name',
-        input: 'search',
-        operator: FilterOperator.chartAllText,
-      },
-    ],
-    [addDangerToast, favoritesFilter, props.user],
-  );
-
   const sortTypes = [
     {
       desc: false,
@@ -826,7 +709,6 @@ function ChartList(props: ChartListProps) {
               data={charts}
               disableBulkSelect={toggleBulkSelect}
               fetchData={fetchData}
-              filters={filters}
               initialSort={initialSort}
               loading={loading}
               pageSize={PAGE_SIZE}
