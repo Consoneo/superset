@@ -9,7 +9,7 @@ pipeline{
         stage("Retrieve npm dependencies"){
             steps{
                 dir("superset-frontend"){
-                    sh label: "Install dependencies", script: "npm ci"
+                    sh label: "Install dependencies", script: "npm install && npm ci"
                 }
             }
         }
