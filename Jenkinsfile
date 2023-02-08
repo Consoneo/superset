@@ -5,32 +5,33 @@ pipeline{
         }
     }
     stages{
-        stage("A"){
+        stage("Retrieve npm dependencies"){
             steps{
-                echo "========executing A========"
-            }
-            post{
-                always{
-                    echo "========always========"
-                }
-                success{
-                    echo "========A executed successfully========"
-                }
-                failure{
-                    echo "========A execution failed========"
+                dir("superset-frontend"){
+                    container("node"){
+                        sh label: "Install dependencies", script: "npm ci"
+                    }
                 }
             }
         }
-    }
-    post{
-        always{
-            echo "========always========"
+        stage("Run unit tests"){
+            steps{
+                dir("superset-frontend"){
+                    container("node"){
+                        sh label: "Execute tests", script: "npm run test -- test packages"
+                    }
+                }
+            }
         }
-        success{
-            echo "========pipeline executed successfully ========"
+        stage("Build packages"){
+            steps{
+                dir("superset-frontend"){
+                    container("node"){
+                        sh label: "Build packages", script: "npm run test -- test packages"
+                    }
+                }
+            }
         }
-        failure{
-            echo "========pipeline execution failed========"
-        }
+
     }
 }
