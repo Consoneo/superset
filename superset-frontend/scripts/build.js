@@ -87,8 +87,7 @@ function getPackages(packagePattern, tsOnly = false) {
     ...new Set(
       fastGlob
         .sync([
-          `./node_modules/@superset-ui/${pattern}/src/**/*.${
-            tsOnly ? '{ts,tsx}' : '{ts,tsx,js,jsx}'
+          `./node_modules/@superset-ui/${pattern}/src/**/*.${tsOnly ? '{ts,tsx}' : '{ts,tsx,js,jsx}'
           }`,
         ])
         .map(x => x.split('/')[3])
@@ -98,9 +97,8 @@ function getPackages(packagePattern, tsOnly = false) {
   if (packages.length === 0) {
     throw new Error('No matching packages');
   }
-  return `@superset-ui/${
-    packages.length > 1 ? `{${packages.join(',')}}` : packages[0]
-  }`;
+  return `@superset-ui/${packages.length > 1 ? `{${packages.join(',')}}` : packages[0]
+    }`;
 }
 
 let scope = getPackages(glob);
@@ -131,7 +129,11 @@ if (shouldRunBabel) {
 }
 
 if (shouldRunTyping) {
+  console.log('--- Print dirname ---');
+  console.log(__dirname);
+
   console.log('--- Run tsc ---');
+
   // only run tsc for packages with ts files
   scope = getPackages(glob, true);
   run(`lerna exec --stream --concurrency 3 --scope ${scope} \
