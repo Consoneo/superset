@@ -136,6 +136,7 @@ if (shouldRunTyping) {
 
   // only run tsc for packages with ts files
   scope = getPackages(glob, true);
+  run('ls -laR .');
   run(`lerna exec --stream --concurrency 3 --scope ${scope} \
        -- ./scripts/tsc.sh --build`);
 }
