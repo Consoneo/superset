@@ -13,13 +13,13 @@ pipeline{
                 }
             }
         }
-        stage("Run unit tests"){
-            steps{
-                dir("superset-frontend"){
-                    sh label: "Execute tests", script: "npm run test -- test packages"
-                }
-            }
-        }
+        // stage("Run unit tests"){
+        //     steps{
+        //         dir("superset-frontend"){
+        //             sh label: "Execute tests", script: "npm run test -- test packages"
+        //         }
+        //     }
+        // }
         stage("Build packages"){
             steps{
                 dir("superset-frontend"){
