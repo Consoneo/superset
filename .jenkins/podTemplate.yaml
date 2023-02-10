@@ -1,6 +1,6 @@
 metadata:
   labels:
-    agent: form-generator
+    agent: superset
 spec:
   imagePullSecrets:
     - name: "svc-images-reader-it-group"
@@ -16,8 +16,13 @@ spec:
               fieldPath: status.podIP
         - name: DOCKER_HOST
           value: tcp://localhost:2375
-      resourceLimitCpu: "1000m"
-      resourceLimitMemory: "2000Mi"
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: 500m
+        limits:
+          memory: "4Gi"
+          cpu: 700m
     - name: dind
       image: docker:20.10.14-dind
       securityContext:
@@ -27,6 +32,13 @@ spec:
           mountPath: /var/lib/docker
       resourceLimitCpu: "1000m"
       resourceLimitMemory: "3500Mi"
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: 500m
+        limits:
+          memory: "4Gi"
+          cpu: 700m
     - name: node
       image: it-group-nexus.consoneo.tech/node/node:14-alpine
       command:
