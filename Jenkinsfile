@@ -20,10 +20,17 @@ pipeline{
         //         }
         //     }
         // }
-        stage("Build packages"){
-            steps{
-                dir("superset-frontend"){
-                    sh label: "Build packages", script: "npm run plugins:build"
+        // stage("Lint"){
+        //     steps {
+        //         dir("superset-frontend"){
+        //             sh label: "Prettier lint", script: "npm run lint"
+        //         }
+        //     }
+        // }
+        stage("Docker"){
+            steps {
+                container("dind"){
+                    sh label: "Docker build", script: "docker build --target lean -t consoneo/superset:latest ."
                 }
             }
         }
