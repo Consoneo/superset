@@ -129,7 +129,6 @@ fetchMock.post(
   },
 );
 
-
 test('renders the metadata bar when saved', async () => {
   const props = createProps({ showTitlePanelItems: true });
   render(<ExploreHeader {...props} />, { useRedux: true });

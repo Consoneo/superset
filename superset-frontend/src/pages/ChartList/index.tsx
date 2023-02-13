@@ -88,15 +88,15 @@ const FlexRowContainer = styled.div`
 const PAGE_SIZE = 25;
 const PASSWORDS_NEEDED_MESSAGE = t(
   'The passwords for the databases below are needed in order to ' +
-  'import them together with the charts. Please note that the ' +
-  '"Secure Extra" and "Certificate" sections of ' +
-  'the database configuration are not present in export files, and ' +
-  'should be added manually after the import if they are needed.',
+    'import them together with the charts. Please note that the ' +
+    '"Secure Extra" and "Certificate" sections of ' +
+    'the database configuration are not present in export files, and ' +
+    'should be added manually after the import if they are needed.',
 );
 const CONFIRM_OVERWRITE_MESSAGE = t(
   'You are importing one or more charts that already exist. ' +
-  'Overwriting might cause you to lose some of your work. Are you ' +
-  'sure you want to overwrite?',
+    'Overwriting might cause you to lose some of your work. Are you ' +
+    'sure you want to overwrite?',
 );
 
 setupPlugins();
@@ -259,14 +259,14 @@ function ChartList(props: ChartListProps) {
     // add filters if filterValue
     const filters = filterValue
       ? {
-        filters: [
-          {
-            col: 'dashboards',
-            opr: FilterOperator.relationManyMany,
-            value: filterValue,
-          },
-        ],
-      }
+          filters: [
+            {
+              col: 'dashboards',
+              opr: FilterOperator.relationManyMany,
+              value: filterValue,
+            },
+          ],
+        }
       : {};
     const queryParams = rison.encode({
       columns: ['dashboard_title', 'id'],

@@ -30,7 +30,7 @@ pipeline{
         stage("Docker"){
             steps {
                 container("dind"){
-                    sh label: "Docker build", script: "docker build --target lean -t consoneo/superset:latest ."
+                    sh label: "Docker build", script: "docker build --target lean -t consoneo/superset:latest --build-arg PY_VER='3.8.12' . -m 3g --platform linux/amd64"
                 }
             }
         }
