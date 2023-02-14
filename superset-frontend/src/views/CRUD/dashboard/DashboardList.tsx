@@ -16,13 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { styled, SupersetClient, t } from '@superset-ui/core';
+import { SupersetClient, t } from '@superset-ui/core';
 import React, { useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import rison from 'rison';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import {
-  createFetchRelated,
   createErrorHandler,
   handleDashboardDelete,
 } from 'src/views/CRUD/utils';
@@ -31,29 +29,19 @@ import ConfirmStatusChange from 'src/components/ConfirmStatusChange';
 import handleResourceExport from 'src/utils/export';
 import Loading from 'src/components/Loading';
 import SubMenu, { SubMenuProps } from 'src/views/components/SubMenu';
-import ListView, {
-  ListViewProps,
-  Filter,
-  Filters,
-  FilterOperator,
-} from 'src/components/ListView';
+import ListView, { ListViewProps } from 'src/components/ListView';
 import { dangerouslyGetItemDoNotUse } from 'src/utils/localStorageHelpers';
 import Owner from 'src/types/Owner';
 import withToasts from 'src/components/MessageToasts/withToasts';
-import FacePile from 'src/components/FacePile';
 import Icons from 'src/components/Icons';
 import DeleteModal from 'src/components/DeleteModal';
-import FaveStar from 'src/components/FaveStar';
 import PropertiesModal from 'src/dashboard/components/PropertiesModal';
 import { Tooltip } from 'src/components/Tooltip';
 import ImportModelsModal from 'src/components/ImportModal/index';
 
 import Dashboard from 'src/dashboard/containers/Dashboard';
 import { Dashboard as CRUDDashboard } from 'src/views/CRUD/types';
-import CertifiedBadge from 'src/components/CertifiedBadge';
-import getBootstrapData from 'src/utils/getBootstrapData';
 import DashboardCard from './DashboardCard';
-import { DashboardStatus } from './types';
 
 const PAGE_SIZE = 25;
 const PASSWORDS_NEEDED_MESSAGE = t(
@@ -92,12 +80,6 @@ interface Dashboard {
   owners: Owner[];
   created_by: object;
 }
-
-const Actions = styled.div`
-  color: ${({ theme }) => theme.colors.grayscale.base};
-`;
-
-const bootstrapData = getBootstrapData();
 
 function DashboardList(props: DashboardListProps) {
   const {
@@ -139,8 +121,6 @@ function DashboardList(props: DashboardListProps) {
   const [importingDashboard, showImportModal] = useState<boolean>(false);
   const [passwordFields, setPasswordFields] = useState<string[]>([]);
   const [preparingExport, setPreparingExport] = useState<boolean>(false);
-  const enableBroadUserAccess =
-    bootstrapData?.common?.conf?.ENABLE_BROAD_ACTIVITY_ACCESS;
 
   const openDashboardImportModal = () => {
     showImportModal(true);
@@ -160,7 +140,6 @@ function DashboardList(props: DashboardListProps) {
   const userKey = dangerouslyGetItemDoNotUse(userId?.toString(), null);
 
   const canCreate = hasPerm('can_write');
-  const canEdit = hasPerm('can_write');
   const canDelete = hasPerm('can_write');
   const canExport =
     hasPerm('can_export') && isFeatureEnabled(FeatureFlag.VERSIONED_EXPORT);
@@ -246,23 +225,6 @@ function DashboardList(props: DashboardListProps) {
   }
 
   const columns = useMemo(() => [], []);
-
-  const favoritesFilter: Filter = useMemo(
-    () => ({
-      Header: t('Favorite'),
-      key: 'favorite',
-      id: 'id',
-      urlDisplay: 'favorite',
-      input: 'select',
-      operator: FilterOperator.dashboardIsFav,
-      unfilteredLabel: t('Any'),
-      selects: [
-        { label: t('Yes'), value: true },
-        { label: t('No'), value: false },
-      ],
-    }),
-    [],
-  );
 
   const sortTypes = [
     {
