@@ -38,10 +38,15 @@ import DeleteModal from 'src/components/DeleteModal';
 import PropertiesModal from 'src/dashboard/components/PropertiesModal';
 import { Tooltip } from 'src/components/Tooltip';
 import ImportModelsModal from 'src/components/ImportModal/index';
+import { Link } from 'react-router-dom';
+import FaveStar from 'src/components/FaveStar';
+import CertifiedBadge from 'src/components/CertifiedBadge';
 
 import Dashboard from 'src/dashboard/containers/Dashboard';
 import { Dashboard as CRUDDashboard } from 'src/views/CRUD/types';
+import { DashboardStatus } from './types';
 import DashboardCard from './DashboardCard';
+// import getBootstrapData from 'src/utils/getBootstrapData';
 
 const PAGE_SIZE = 25;
 const PASSWORDS_NEEDED_MESSAGE = t(
@@ -80,6 +85,8 @@ interface Dashboard {
   owners: Owner[];
   created_by: object;
 }
+
+// const bootstrapData = getBootstrapData();
 
 function DashboardList(props: DashboardListProps) {
   const {
@@ -129,6 +136,9 @@ function DashboardList(props: DashboardListProps) {
   const closeDashboardImportModal = () => {
     showImportModal(false);
   };
+
+  // const enableBroadUserAccess =
+  //   bootstrapData?.common?.conf?.ENABLE_BROAD_ACTIVITY_ACCESS;
 
   const handleDashboardImport = () => {
     showImportModal(false);
@@ -224,7 +234,86 @@ function DashboardList(props: DashboardListProps) {
     );
   }
 
-  const columns = useMemo(() => [], []);
+  const columns = useMemo(
+    () => [
+      {
+        Cell: ({
+          row: {
+            original: { id },
+          },
+        }: any) =>
+          userId && (
+            <FaveStar
+              itemId={id}
+              saveFaveStar={saveFavoriteStatus}
+              isStarred={favoriteStatus[id]}
+            />
+          ),
+        Header: '',
+        id: 'id',
+        disableSortBy: true,
+        size: 'xs',
+        hidden: !userId,
+      },
+      {
+        Cell: ({
+          row: {
+            original: {
+              url,
+              dashboard_title: dashboardTitle,
+              certified_by: certifiedBy,
+              certification_details: certificationDetails,
+            },
+          },
+        }: any) => (
+          <Link to={url}>
+            {certifiedBy && (
+              <>
+                <CertifiedBadge
+                  certifiedBy={certifiedBy}
+                  details={certificationDetails}
+                />{' '}
+              </>
+            )}
+            {dashboardTitle}
+          </Link>
+        ),
+        Header: t('Title'),
+        accessor: 'dashboard_title',
+      },
+      {
+        Cell: ({
+          row: {
+            original: { status },
+          },
+        }: any) =>
+          status === DashboardStatus.PUBLISHED ? t('Published') : t('Draft'),
+        Header: t('Status'),
+        accessor: 'published',
+        size: 'xl',
+      },
+      {
+        Cell: ({
+          row: {
+            original: { changed_on_delta_humanized: changedOn },
+          },
+        }: any) => <span className="no-wrap">{changedOn}</span>,
+        Header: t('Modified'),
+        accessor: 'changed_on_delta_humanized',
+        size: 'xl',
+      },
+    ],
+    [
+      userId,
+      canDelete,
+      canExport,
+      saveFavoriteStatus,
+      favoriteStatus,
+      refreshData,
+      addSuccessToast,
+      addDangerToast,
+    ],
+  );
 
   const sortTypes = [
     {
