@@ -19,21 +19,16 @@
 import {
   ensureIsArray,
   getChartMetadataRegistry,
-  JsonResponse,
   styled,
   SupersetClient,
   t,
 } from '@superset-ui/core';
 import React, { useState, useMemo, useCallback } from 'react';
 import rison from 'rison';
-import { uniqBy } from 'lodash';
+
 import moment from 'moment';
 import { FeatureFlag, isFeatureEnabled } from 'src/featureFlags';
-import {
-  createErrorHandler,
-  createFetchRelated,
-  handleChartDelete,
-} from 'src/views/CRUD/utils';
+import { createErrorHandler, handleChartDelete } from 'src/views/CRUD/utils';
 import {
   useChartEditModal,
   useFavoriteStatus,
@@ -44,13 +39,7 @@ import ConfirmStatusChange from 'src/components/ConfirmStatusChange';
 import SubMenu, { SubMenuProps } from 'src/views/components/SubMenu';
 import FaveStar from 'src/components/FaveStar';
 import { Link, useHistory } from 'react-router-dom';
-import ListView, {
-  Filter,
-  FilterOperator,
-  Filters,
-  ListViewProps,
-  SelectOption,
-} from 'src/components/ListView';
+import ListView, { ListViewProps } from 'src/components/ListView';
 import CrossLinks from 'src/components/ListView/CrossLinks';
 import Loading from 'src/components/Loading';
 import { dangerouslyGetItemDoNotUse } from 'src/utils/localStorageHelpers';
@@ -60,7 +49,6 @@ import ImportModelsModal from 'src/components/ImportModal/index';
 import Chart, { ChartLinkedDashboard } from 'src/types/Chart';
 import { Tooltip } from 'src/components/Tooltip';
 import Icons from 'src/components/Icons';
-import { nativeFilterGate } from 'src/dashboard/components/nativeFilters/utils';
 import setupPlugins from 'src/setup/setupPlugins';
 import InfoTooltip from 'src/components/InfoTooltip';
 import CertifiedBadge from 'src/components/CertifiedBadge';
@@ -101,42 +89,6 @@ const CONFIRM_OVERWRITE_MESSAGE = t(
 
 setupPlugins();
 const registry = getChartMetadataRegistry();
-
-const createFetchDatasets = async (
-  filterValue = '',
-  page: number,
-  pageSize: number,
-) => {
-  // add filters if filterValue
-  const filters = filterValue
-    ? { filters: [{ col: 'table_name', opr: 'sw', value: filterValue }] }
-    : {};
-  const queryParams = rison.encode({
-    columns: ['datasource_name', 'datasource_id'],
-    keys: ['none'],
-    order_column: 'table_name',
-    order_direction: 'asc',
-    page,
-    page_size: pageSize,
-    ...filters,
-  });
-
-  const { json = {} } = await SupersetClient.get({
-    endpoint: `/api/v1/dataset/?q=${queryParams}`,
-  });
-
-  const datasets = json?.result?.map(
-    ({ table_name: tableName, id }: { table_name: string; id: number }) => ({
-      label: tableName,
-      value: id,
-    }),
-  );
-
-  return {
-    data: uniqBy<SelectOption>(datasets, 'value'),
-    totalCount: json?.count,
-  };
-};
 
 interface ChartListProps {
   addDangerToast: (msg: string) => void;
@@ -251,56 +203,6 @@ function ChartList(props: ChartListProps) {
       ),
     );
   }
-  const fetchDashboards = async (
-    filterValue = '',
-    page: number,
-    pageSize: number,
-  ) => {
-    // add filters if filterValue
-    const filters = filterValue
-      ? {
-          filters: [
-            {
-              col: 'dashboards',
-              opr: FilterOperator.relationManyMany,
-              value: filterValue,
-            },
-          ],
-        }
-      : {};
-    const queryParams = rison.encode({
-      columns: ['dashboard_title', 'id'],
-      keys: ['none'],
-      order_column: 'dashboard_title',
-      order_direction: 'asc',
-      page,
-      page_size: pageSize,
-      ...filters,
-    });
-    const response: void | JsonResponse = await SupersetClient.get({
-      endpoint: !filterValue
-        ? `/api/v1/dashboard/?q=${queryParams}`
-        : `/api/v1/chart/?q=${queryParams}`,
-    }).catch(() =>
-      addDangerToast(t('An error occurred while fetching dashboards')),
-    );
-    const dashboards = response?.json?.result?.map(
-      ({
-        dashboard_title: dashboardTitle,
-        id,
-      }: {
-        dashboard_title: string;
-        id: number;
-      }) => ({
-        label: dashboardTitle,
-        value: id,
-      }),
-    );
-    return {
-      data: uniqBy<SelectOption>(dashboards, 'value'),
-      totalCount: response?.json?.count,
-    };
-  };
 
   const columns = useMemo(
     () => [
@@ -550,140 +452,6 @@ function ChartList(props: ChartListProps) {
     ],
   );
 
-  const favoritesFilter: Filter = useMemo(
-    () => ({
-      Header: t('Favorite'),
-      key: 'favorite',
-      id: 'id',
-      urlDisplay: 'favorite',
-      input: 'select',
-      operator: FilterOperator.chartIsFav,
-      unfilteredLabel: t('Any'),
-      selects: [
-        { label: t('Yes'), value: true },
-        { label: t('No'), value: false },
-      ],
-    }),
-    [],
-  );
-
-  const filters: Filters = useMemo(
-    () => [
-      {
-        Header: t('Owner'),
-        key: 'owner',
-        id: 'owners',
-        input: 'select',
-        operator: FilterOperator.relationManyMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'chart',
-          'owners',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching chart owners values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Created by'),
-        key: 'created_by',
-        id: 'created_by',
-        input: 'select',
-        operator: FilterOperator.relationOneMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'chart',
-          'created_by',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching chart created by values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Chart type'),
-        key: 'viz_type',
-        id: 'viz_type',
-        input: 'select',
-        operator: FilterOperator.equals,
-        unfilteredLabel: t('All'),
-        selects: registry
-          .keys()
-          .filter(k => nativeFilterGate(registry.get(k)?.behaviors || []))
-          .map(k => ({ label: registry.get(k)?.name || k, value: k }))
-          .sort((a, b) => {
-            if (!a.label || !b.label) {
-              return 0;
-            }
-
-            if (a.label > b.label) {
-              return 1;
-            }
-            if (a.label < b.label) {
-              return -1;
-            }
-
-            return 0;
-          }),
-      },
-      {
-        Header: t('Dataset'),
-        key: 'dataset',
-        id: 'datasource_id',
-        input: 'select',
-        operator: FilterOperator.equals,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchDatasets,
-        paginate: true,
-      },
-      {
-        Header: t('Dashboards'),
-        key: 'dashboards',
-        id: 'dashboards',
-        input: 'select',
-        operator: FilterOperator.relationManyMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: fetchDashboards,
-        paginate: true,
-      },
-      ...(userId ? [favoritesFilter] : []),
-      {
-        Header: t('Certified'),
-        key: 'certified',
-        id: 'id',
-        urlDisplay: 'certified',
-        input: 'select',
-        operator: FilterOperator.chartIsCertified,
-        unfilteredLabel: t('Any'),
-        selects: [
-          { label: t('Yes'), value: true },
-          { label: t('No'), value: false },
-        ],
-      },
-      {
-        Header: t('Search'),
-        key: 'search',
-        id: 'slice_name',
-        input: 'search',
-        operator: FilterOperator.chartAllText,
-      },
-    ],
-    [addDangerToast, favoritesFilter, props.user],
-  );
-
   const sortTypes = [
     {
       desc: false,
@@ -821,7 +589,6 @@ function ChartList(props: ChartListProps) {
               data={charts}
               disableBulkSelect={toggleBulkSelect}
               fetchData={fetchData}
-              filters={filters}
               initialSort={initialSort}
               loading={loading}
               pageSize={PAGE_SIZE}

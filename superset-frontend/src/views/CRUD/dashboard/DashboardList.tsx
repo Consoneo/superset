@@ -18,11 +18,9 @@
  */
 import { styled, SupersetClient, t } from '@superset-ui/core';
 import React, { useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import rison from 'rison';
 import { isFeatureEnabled, FeatureFlag } from 'src/featureFlags';
 import {
-  createFetchRelated,
   createErrorHandler,
   handleDashboardDelete,
 } from 'src/views/CRUD/utils';
@@ -31,29 +29,24 @@ import ConfirmStatusChange from 'src/components/ConfirmStatusChange';
 import handleResourceExport from 'src/utils/export';
 import Loading from 'src/components/Loading';
 import SubMenu, { SubMenuProps } from 'src/views/components/SubMenu';
-import ListView, {
-  ListViewProps,
-  Filter,
-  Filters,
-  FilterOperator,
-} from 'src/components/ListView';
+import ListView, { ListViewProps } from 'src/components/ListView';
 import { dangerouslyGetItemDoNotUse } from 'src/utils/localStorageHelpers';
 import Owner from 'src/types/Owner';
 import withToasts from 'src/components/MessageToasts/withToasts';
-import FacePile from 'src/components/FacePile';
 import Icons from 'src/components/Icons';
 import DeleteModal from 'src/components/DeleteModal';
-import FaveStar from 'src/components/FaveStar';
 import PropertiesModal from 'src/dashboard/components/PropertiesModal';
 import { Tooltip } from 'src/components/Tooltip';
 import ImportModelsModal from 'src/components/ImportModal/index';
+import { Link } from 'react-router-dom';
+import FaveStar from 'src/components/FaveStar';
+import CertifiedBadge from 'src/components/CertifiedBadge';
 
 import Dashboard from 'src/dashboard/containers/Dashboard';
 import { Dashboard as CRUDDashboard } from 'src/views/CRUD/types';
-import CertifiedBadge from 'src/components/CertifiedBadge';
-import getBootstrapData from 'src/utils/getBootstrapData';
-import DashboardCard from './DashboardCard';
 import { DashboardStatus } from './types';
+import DashboardCard from './DashboardCard';
+// import getBootstrapData from 'src/utils/getBootstrapData';
 
 const PAGE_SIZE = 25;
 const PASSWORDS_NEEDED_MESSAGE = t(
@@ -92,12 +85,10 @@ interface Dashboard {
   owners: Owner[];
   created_by: object;
 }
-
 const Actions = styled.div`
   color: ${({ theme }) => theme.colors.grayscale.base};
 `;
-
-const bootstrapData = getBootstrapData();
+// const bootstrapData = getBootstrapData();
 
 function DashboardList(props: DashboardListProps) {
   const {
@@ -139,8 +130,6 @@ function DashboardList(props: DashboardListProps) {
   const [importingDashboard, showImportModal] = useState<boolean>(false);
   const [passwordFields, setPasswordFields] = useState<string[]>([]);
   const [preparingExport, setPreparingExport] = useState<boolean>(false);
-  const enableBroadUserAccess =
-    bootstrapData?.common?.conf?.ENABLE_BROAD_ACTIVITY_ACCESS;
 
   const openDashboardImportModal = () => {
     showImportModal(true);
@@ -149,6 +138,9 @@ function DashboardList(props: DashboardListProps) {
   const closeDashboardImportModal = () => {
     showImportModal(false);
   };
+
+  // const enableBroadUserAccess =
+  //   bootstrapData?.common?.conf?.ENABLE_BROAD_ACTIVITY_ACCESS;
 
   const handleDashboardImport = () => {
     showImportModal(false);
@@ -292,25 +284,6 @@ function DashboardList(props: DashboardListProps) {
         Header: t('Title'),
         accessor: 'dashboard_title',
       },
-
-      {
-        Cell: ({
-          row: {
-            original: {
-              changed_by_name: changedByName,
-              changed_by_url: changedByUrl,
-            },
-          },
-        }: any) =>
-          enableBroadUserAccess ? (
-            <a href={changedByUrl}>{changedByName}</a>
-          ) : (
-            <>{changedByName}</>
-          ),
-        Header: t('Modified by'),
-        accessor: 'changed_by.first_name',
-        size: 'xl',
-      },
       {
         Cell: ({
           row: {
@@ -330,29 +303,6 @@ function DashboardList(props: DashboardListProps) {
         }: any) => <span className="no-wrap">{changedOn}</span>,
         Header: t('Modified'),
         accessor: 'changed_on_delta_humanized',
-        size: 'xl',
-      },
-      {
-        Cell: ({
-          row: {
-            original: { created_by: createdBy },
-          },
-        }: any) =>
-          createdBy ? `${createdBy.first_name} ${createdBy.last_name}` : '',
-        Header: t('Created by'),
-        accessor: 'created_by',
-        disableSortBy: true,
-        size: 'xl',
-      },
-      {
-        Cell: ({
-          row: {
-            original: { owners = [] },
-          },
-        }: any) => <FacePile users={owners} />,
-        Header: t('Owners'),
-        accessor: 'owners',
-        disableSortBy: true,
         size: 'xl',
       },
       {
@@ -441,7 +391,6 @@ function DashboardList(props: DashboardListProps) {
     ],
     [
       userId,
-      canEdit,
       canDelete,
       canExport,
       saveFavoriteStatus,
@@ -450,106 +399,6 @@ function DashboardList(props: DashboardListProps) {
       addSuccessToast,
       addDangerToast,
     ],
-  );
-
-  const favoritesFilter: Filter = useMemo(
-    () => ({
-      Header: t('Favorite'),
-      key: 'favorite',
-      id: 'id',
-      urlDisplay: 'favorite',
-      input: 'select',
-      operator: FilterOperator.dashboardIsFav,
-      unfilteredLabel: t('Any'),
-      selects: [
-        { label: t('Yes'), value: true },
-        { label: t('No'), value: false },
-      ],
-    }),
-    [],
-  );
-
-  const filters: Filters = useMemo(
-    () => [
-      {
-        Header: t('Search'),
-        key: 'search',
-        id: 'dashboard_title',
-        input: 'search',
-        operator: FilterOperator.titleOrSlug,
-      },
-      {
-        Header: t('Owner'),
-        key: 'owner',
-        id: 'owners',
-        input: 'select',
-        operator: FilterOperator.relationManyMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'dashboard',
-          'owners',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching dashboard owner values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Created by'),
-        key: 'created_by',
-        id: 'created_by',
-        input: 'select',
-        operator: FilterOperator.relationOneMany,
-        unfilteredLabel: t('All'),
-        fetchSelects: createFetchRelated(
-          'dashboard',
-          'created_by',
-          createErrorHandler(errMsg =>
-            addDangerToast(
-              t(
-                'An error occurred while fetching dashboard created by values: %s',
-                errMsg,
-              ),
-            ),
-          ),
-          props.user,
-        ),
-        paginate: true,
-      },
-      {
-        Header: t('Status'),
-        key: 'published',
-        id: 'published',
-        input: 'select',
-        operator: FilterOperator.equals,
-        unfilteredLabel: t('Any'),
-        selects: [
-          { label: t('Published'), value: true },
-          { label: t('Draft'), value: false },
-        ],
-      },
-      ...(userId ? [favoritesFilter] : []),
-      {
-        Header: t('Certified'),
-        key: 'certified',
-        id: 'id',
-        urlDisplay: 'certified',
-        input: 'select',
-        operator: FilterOperator.dashboardIsCertified,
-        unfilteredLabel: t('Any'),
-        selects: [
-          { label: t('Yes'), value: true },
-          { label: t('No'), value: false },
-        ],
-      },
-    ],
-    [addDangerToast, favoritesFilter, props.user],
   );
 
   const sortTypes = [
@@ -714,7 +563,6 @@ function DashboardList(props: DashboardListProps) {
                 data={dashboards}
                 disableBulkSelect={toggleBulkSelect}
                 fetchData={fetchData}
-                filters={filters}
                 initialSort={initialSort}
                 loading={loading}
                 pageSize={PAGE_SIZE}

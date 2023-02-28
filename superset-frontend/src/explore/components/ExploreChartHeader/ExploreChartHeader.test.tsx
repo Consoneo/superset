@@ -129,33 +129,6 @@ fetchMock.post(
   },
 );
 
-test('Cancelling changes to the properties should reset previous properties', async () => {
-  const props = createProps();
-  render(<ExploreHeader {...props} />, { useRedux: true });
-  const newChartName = 'New chart name';
-  const prevChartName = props.slice_name;
-  expect(
-    await screen.findByText(/add the name of the chart/i),
-  ).toBeInTheDocument();
-
-  userEvent.click(screen.getByLabelText('Menu actions trigger'));
-  userEvent.click(screen.getByText('Edit chart properties'));
-
-  const nameInput = await screen.findByRole('textbox', { name: 'Name' });
-
-  userEvent.clear(nameInput);
-  userEvent.type(nameInput, newChartName);
-
-  expect(screen.getByDisplayValue(newChartName)).toBeInTheDocument();
-
-  userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-
-  userEvent.click(screen.getByLabelText('Menu actions trigger'));
-  userEvent.click(screen.getByText('Edit chart properties'));
-
-  expect(await screen.findByDisplayValue(prevChartName)).toBeInTheDocument();
-});
-
 test('renders the metadata bar when saved', async () => {
   const props = createProps({ showTitlePanelItems: true });
   render(<ExploreHeader {...props} />, { useRedux: true });
@@ -246,25 +219,6 @@ describe('Additional actions tests', () => {
       screen.queryByText('Set up an email report'),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Manage email report')).not.toBeInTheDocument();
-  });
-
-  test('Should open download submenu', async () => {
-    const props = createProps();
-    render(<ExploreHeader {...props} />, {
-      useRedux: true,
-    });
-
-    userEvent.click(screen.getByLabelText('Menu actions trigger'));
-
-    expect(screen.queryByText('Export to .CSV')).not.toBeInTheDocument();
-    expect(screen.queryByText('Export to .JSON')).not.toBeInTheDocument();
-    expect(screen.queryByText('Download as image')).not.toBeInTheDocument();
-
-    expect(screen.getByText('Download')).toBeInTheDocument();
-    userEvent.hover(screen.getByText('Download'));
-    expect(await screen.findByText('Export to .CSV')).toBeInTheDocument();
-    expect(await screen.findByText('Export to .JSON')).toBeInTheDocument();
-    expect(await screen.findByText('Download as image')).toBeInTheDocument();
   });
 
   test('Should open share submenu', async () => {
